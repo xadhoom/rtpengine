@@ -42,6 +42,8 @@ static packetizer_f packetizer_amr;
 static format_init_f opus_init;
 static set_enc_options_f opus_set_enc_options;
 
+static set_enc_options_f ilbc_set_enc_options;
+
 static set_enc_options_f amr_set_enc_options;
 static set_dec_options_f amr_set_dec_options;
 
@@ -247,6 +249,7 @@ static codec_def_t __codec_defs[] = {
 		.packetizer = packetizer_passthrough,
 		.media_type = MT_AUDIO,
 		.codec_type = &codec_type_avcodec,
+		.set_enc_options = ilbc_set_enc_options,
 	},
 	{
 		.rtpname = "opus",
@@ -1356,6 +1359,15 @@ static void opus_set_enc_options(encoder_t *enc, const str *fmtp) {
 			ilog(LOG_WARN, "Failed to set Opus frame_duration option to %i: %s",
 					enc->ptime, av_error(ret));
 	// XXX additional opus options
+}
+
+static void ilbc_set_enc_options(encoder_t *enc, const str *fmtp) {
+	int ret;
+	if (enc->ptime)
+		if ((ret = av_opt_set_int(enc->u.avc.avcctx, "mode", enc->ptime,
+						AV_OPT_SEARCH_CHILDREN)))
+			ilog(LOG_WARN, "Failed to set iLBC mode option to %i: %s",
+					enc->ptime, av_error(ret));
 }
 
 
